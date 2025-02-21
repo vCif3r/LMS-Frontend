@@ -1,4 +1,4 @@
-import { Box, Calendar, ChevronUp, Command, Home, Inbox, LayoutDashboard, Settings, User2 } from "lucide-react"
+import { Box, Calendar, ChevronUp, Command, Home, Inbox, LayoutDashboard, LogOut, Settings, User2, Users } from "lucide-react"
 
 import {
     Sidebar,
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/sidebar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu"
 import { Link } from "react-router-dom"
+import { useAuth } from "@/core/contexts/AuthProvider"
 
 // Menu items.
 const items = [
@@ -22,20 +23,25 @@ const items = [
         url: "/dashboard",
         icon: LayoutDashboard,
     },
+    // {
+    //     title: "Inbox",
+    //     url: "#",
+    //     icon: Inbox,
+    // },
+    // {
+    //     title: "Calendar",
+    //     url: "#",
+    //     icon: Calendar,
+    // },
     {
-        title: "Inbox",
-        url: "#",
-        icon: Inbox,
-    },
-    {
-        title: "Calendar",
-        url: "#",
-        icon: Calendar,
-    },
-    {
-        title: "Courses",
-        url: "/dashboard/courses",
+        title: "Cursos",
+        url: "/courses",
         icon: Box,
+    },
+    {
+        title: "Usuarios",
+        url: "/users",
+        icon: Users,
     },
     {
         title: "Settings",
@@ -45,6 +51,7 @@ const items = [
 ]
 
 export function AppSidebar() {
+    const {logout} = useAuth()
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -57,7 +64,7 @@ export function AppSidebar() {
                                 </div>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
                                     <span className="truncate font-semibold">LMS PZDT</span>
-                                    <span className="truncate text-xs">Enterprise</span>
+                                    <span className="truncate text-xs">InnovaLearn</span>
                                 </div>
                             </div>
                         </SidebarMenuButton>
@@ -66,7 +73,6 @@ export function AppSidebar() {
             </SidebarHeader>
             <SidebarContent>
                 <SidebarGroup>
-                    <SidebarGroupLabel>Application</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
                             {items.map((item) => (
@@ -86,28 +92,10 @@ export function AppSidebar() {
             <SidebarFooter>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <SidebarMenuButton>
-                                    <User2 /> Username
-                                    <ChevronUp className="ml-auto" />
-                                </SidebarMenuButton>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                                side="top"
-                                className="w-[--radix-popper-anchor-width]"
-                            >
-                                <DropdownMenuItem>
-                                    <span>Account</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <span>Billing</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <span>Sign out</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <SidebarMenuButton onClick={logout}>
+                            <LogOut/>
+                            <span>LogOut</span>
+                        </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarFooter>
