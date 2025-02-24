@@ -4,8 +4,10 @@ import { NotifficationToggle } from "@/components/notiffication-toggle"
 import { ModeToggle } from "@/components/mode-toggle"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import { useAuth } from "../contexts/AuthProvider"
 
 function Toolbar() {
+    const {userData} = useAuth()
     return (
         <>
             <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
@@ -18,8 +20,10 @@ function Toolbar() {
                         <DropdownMenu>
                             <DropdownMenuTrigger>
                                 <Avatar>
-                                    <AvatarImage src="https://github.com/shadcn.png" />
-                                    <AvatarFallback>CN</AvatarFallback>
+                                    <AvatarImage src={userData.img} />
+                                    <AvatarFallback>{
+                                        userData.firstName.charAt(0).toUpperCase()+userData.lastName.charAt(0).toUpperCase()
+                                    }</AvatarFallback>
                                 </Avatar>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">

@@ -5,8 +5,9 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Layout from "@/core/layout/layout";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
 const AddUser = () => {
     const { toast } = useToast();
@@ -66,7 +67,22 @@ const AddUser = () => {
 
     return (
         <Layout>
-            <div className="p-4">
+            <div className="p-5">
+                <div className="flex justify-end items-center py-2">
+                    <Breadcrumb>
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink asChild>
+                                    <Link to={'/users'}>Usuarios</Link>
+                                </BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                                <BreadcrumbPage>Nuevo Usuario</BreadcrumbPage>
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                </div>
                 <Card>
                     <CardHeader>
                         <CardTitle>Agregar nuevo usuario</CardTitle>

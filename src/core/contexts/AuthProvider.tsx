@@ -1,13 +1,22 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { jwtDecode } from "jwt-decode";
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import {jwtDecode} from "jwt-decode"; // Importación correcta de jwt-decode
 
 // Definición de los tipos para el contexto
 interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
-  userData: any,
+  userData: UserData | null;
   login: (newToken: string) => void;
   logout: () => void;
+}
+
+// Definición del tipo UserData
+interface UserData {
+  id: number;
+  firstName: string;
+  lastName: string;
+  role: string;
+  image: string;
 }
 
 // Crear el contexto con un tipo inicial
@@ -20,22 +29,32 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [token, setToken] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
 
   useEffect(() => {
+    // Obtener los datos del usuario del localStorage
     const storedData = localStorage.getItem('data_user');
     if (storedData) {
-      const { userToken } = JSON.parse(storedData);
-      const decoded = jwtDecode(userToken);
-      setToken(userToken);
-      setUserData(decoded);
-      setIsAuthenticated(true);
+      try {
+        const { userToken } = JSON.parse(storedData);
+        if (userToken) {
+          // Decodificar el token para obtener los datos del usuario
+          const decoded = jwtDecode<UserData>(userToken);
+          setToken(userToken);
+          setUserData(decoded);
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error('Error al decodificar el token:', error);
+      }
     }
   }, []);
 
   const login = (newToken: string) => {
-    localStorage.setItem('data_user', JSON.stringify({ userToken: newToken })); // Aquí podrías añadir datos del usuario
+    localStorage.setItem('data_user', JSON.stringify({ userToken: newToken }));
+    const decoded = jwtDecode<UserData>(newToken);
     setToken(newToken);
+    setUserData(decoded);
     setIsAuthenticated(true);
   };
 
@@ -47,7 +66,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   return (
-    <AuthContext.Provider value={ { token, isAuthenticated,userData, login, logout } }>
+    <AuthContext.Provider value={{ token, isAuthenticated, userData, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

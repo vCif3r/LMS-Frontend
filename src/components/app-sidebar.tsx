@@ -1,4 +1,4 @@
-import { Box, Calendar, ChevronUp, Command, Home, Inbox, LayoutDashboard, LogOut, Settings, User2, Users } from "lucide-react"
+import { Box, Command, LayoutDashboard, LogOut, Settings, Users } from "lucide-react"
 
 import {
     Sidebar,
@@ -6,13 +6,11 @@ import {
     SidebarFooter,
     SidebarGroup,
     SidebarGroupContent,
-    SidebarGroupLabel,
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem
 } from "@/components/ui/sidebar"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu"
 import { Link } from "react-router-dom"
 import { useAuth } from "@/core/contexts/AuthProvider"
 
@@ -94,7 +92,7 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton onClick={logout}>
                             <LogOut/>
-                            <span>LogOut</span>
+                            <span>Cerrar sesión</span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
