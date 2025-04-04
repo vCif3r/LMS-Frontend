@@ -3,13 +3,19 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from './core/contexts/AuthProvider.tsx'
-import { AxiosInterceptor } from './core/interceptors/axios.interceptor.ts'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Toaster } from "@/components/ui/sonner"
 
-AxiosInterceptor()
+const queryClient = new QueryClient()
+
+//AxiosInterceptor();
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <App />
+        <Toaster />
+      </AuthProvider>
+    </QueryClientProvider>
   </StrictMode>,
 )

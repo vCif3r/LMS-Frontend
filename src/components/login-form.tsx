@@ -9,7 +9,7 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"form">) {
-  const { login } = useAuth()
+  const { handleLogin } = useAuth()
   const [error, setError] = useState<string | null>(null) // Tipado del estado error
   const [loading, setLoading] = useState<boolean>(false) // Tipado del estado loading
 
@@ -35,7 +35,7 @@ export function LoginForm({
       const data = await res.json()
 
       if (res.status === 201) {
-        login(data.access_token) // Usar el token de acceso para el login
+        handleLogin(data.access_token) // Usar el token de acceso para el login
       } else {
         setError(data.message || "An error occurred. Please try again.")
       }

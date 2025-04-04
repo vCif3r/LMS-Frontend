@@ -1,22 +1,29 @@
 import React from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
+import { Loader } from "lucide-react"
 
 interface StatCardProps {
-    label: string
-    number: number
-    icon: React.ElementType
+    title: string
+    value: number
+    icon: React.ElementType,
+    isLoading?: boolean
 }
 
 function StatCard(props: StatCardProps) {
     return (
-        <div className="rounded-xl border bg-card text-card-foreground shadow">
-            <div className="p-6 flex flex-row items-center justify-between pb-2 space-y-0">
-                <div className="tracking-tight font-medium">{props.label}</div>
-                <props.icon className="h-5 w-5 text-gray-500"/>
-            </div>
-            <div className="p-6 pt-0">
-                <div className="text-3xl font-bold">+{props.number}</div>
-            </div>
-        </div>
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="flex items-center gap-1">
+                    <CardTitle className="text-sm font-medium">{props.title}</CardTitle>
+                </div>
+                <props.icon strokeWidth={2.5} className="h-4 w-4  text-muted-foreground"/>
+            </CardHeader>
+            <CardContent className="w-full">
+                <div className="text-3xl font-bold">
+                    {props.isLoading ? <Loader className="w-6 h-6 animate-spin" /> : props.value}
+                </div>
+            </CardContent>
+        </Card>
     )
 }
 

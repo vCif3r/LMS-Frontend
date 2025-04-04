@@ -1,11 +1,11 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import Toolbar from "./toolbar";
+import Toolbar from "../../components/toolbar";
 import { Toaster } from "@/components/ui/toaster"
-import { ReactNode } from "react";
+import { Outlet } from "react-router-dom";
 
-export default function Layout({ children }: { children: ReactNode }) {
+export default function Layout() {
     return (
         <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
             <SidebarProvider>
@@ -15,8 +15,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                 <SidebarInset>
                     <Toolbar/>
                     <main>
-                        {children}
-                    
+                        <Outlet />    
                         <Toaster />
                     </main>
                 </SidebarInset>

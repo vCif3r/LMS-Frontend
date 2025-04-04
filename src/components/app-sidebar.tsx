@@ -1,5 +1,4 @@
-import { Box, Command, LayoutDashboard, LogOut, Settings, Users } from "lucide-react"
-
+import { Box, Command, LayoutDashboard, LogOut, Settings, Users, GraduationCap } from "lucide-react"
 import {
     Sidebar,
     SidebarContent,
@@ -21,16 +20,11 @@ const items = [
         url: "/dashboard",
         icon: LayoutDashboard,
     },
-    // {
-    //     title: "Inbox",
-    //     url: "#",
-    //     icon: Inbox,
-    // },
-    // {
-    //     title: "Calendar",
-    //     url: "#",
-    //     icon: Calendar,
-    // },
+    {
+        title: "Grados",
+        url: "/grade-levels",
+        icon: GraduationCap,
+    },
     {
         title: "Cursos",
         url: "/courses",
@@ -49,7 +43,7 @@ const items = [
 ]
 
 export function AppSidebar() {
-    const {logout} = useAuth()
+    const {handleLogout} = useAuth()
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -90,9 +84,8 @@ export function AppSidebar() {
             <SidebarFooter>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton onClick={logout}>
-                            <LogOut/>
-                            <span>Cerrar sesión</span>
+                        <SidebarMenuButton onClick={handleLogout}>
+                            <LogOut/> Cerrar sesión
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
