@@ -3,8 +3,12 @@ export interface User {
     firstName: string;
     lastName: string;
     email: string;
+    dni: string;
     isActive: boolean;
     role: any;
+    roleId?: number;
+    createdAt: Date;
+    updatedAt: Date;
 };
 
 export interface UserFilters {

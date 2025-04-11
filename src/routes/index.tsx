@@ -10,9 +10,9 @@ function AppRoutes() {
     return (
         <BrowserRouter>
             <Suspense fallback={
-                <div className='w-100 vh-100 flex items-center justify-center'>
+                <div className='w-100 h-100 flex items-center justify-center'>
                     <ClipLoader
-                        size={150}
+                        size={350}
                         aria-label="Loading Spinner"
                         data-testid="loader"
                     />

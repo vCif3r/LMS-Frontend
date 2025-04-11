@@ -1,8 +1,7 @@
-import { GradeLevel } from '@/core/types/grade-level'
+import { GradeLevel, GradeLevelFilters } from '@/core/types/grade-level'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useEffect, useState } from 'react'
-import { getGradeLevels, saveGradeLevel, softDeleteGradeLevel, updateGradeLevel } from '@/core/services/grade-level.service'
 import { toast } from '@/hooks/use-toast'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/core/contexts/AuthProvider'
@@ -11,99 +10,110 @@ import CreateGradeLevel from './CreateGradeLevel'
 import EditGradeLevel from './EditGradeLevel'
 import DeleteGradeLevel from './DeleteGradeLevel'
 import { Badge } from '@/components/ui/badge'
+import { useCreateGradeLevel, useGradeLevels, useUpdateGradeLevel } from '@/hooks/use-grade-level'
+import { Skeleton } from '@/components/ui/skeleton'
+import { set } from 'date-fns'
 
 const ListGradeLevels: React.FC = () => {
-  const { isAuthenticated } = useAuth()
-  const role = 'admin'
-  const [gradeLevels, setGradeLevels] = useState<GradeLevel[]>([])
-  const [loading, setLoading] = useState<boolean>(true);
+  const { isAuthenticated, role } = useAuth()
+  const [isSubmitting, setIsSubmitting] = useState(false); // Estado de carga para el botón
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('')
+
+  const createGradeLevel = useCreateGradeLevel();
+  const updateGradeLevel = useUpdateGradeLevel(); // Cambia esto a la mutación de actualización correspondiente
+
+  // Custom hook para obtener los niveles de grado
+  const [filters, setFilters] = useState<GradeLevelFilters>({
+    page: 1,
+    limit: 10,
+    sortBy: 'createdAt',
+    orderBy: 'DESC',
+  })
+
+  const { data, isLoading, isError } = useGradeLevels(filters);
+
+  const handlePageChange = (page: number) => {
+    setFilters({ ...filters, page });
+  };
+
   // Estados para controlar los modales
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<GradeLevel | null>(null);
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const data = await getGradeLevels();
-      setGradeLevels(data.data);
-      setError(null)
-    } catch (error) {
-      setError('Error al cargar los datos. Por favor, intenta de nuevo más tarde.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
-    loadData();
   }, [])
 
   const createItem = async (newGradeLevel: Omit<GradeLevel, 'id'>) => {
     try {
       setLoading(true);
-      await saveGradeLevel(newGradeLevel);
-      loadData();
-      setIsCreateModalOpen(false);
-      toast({
-        title: 'Elemento creado',
-        description: 'El grado ha sido creado exitosamente',
-      });
-    } catch (err) {
-      toast({
-        title: 'Error',
-        description: 'No se pudo crear el grado',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
+      await createGradeLevel.mutateAsync(newGradeLevel)
+      setIsCreateModalOpen(false)
+    } catch (error) {
+      console.error('Error al crear el grado:', error)
+    }finally {
+      setLoading(false); // Detener carga
     }
-  };
+  }
 
   const updateItem = async (updatedItem: GradeLevel) => {
     try {
       setLoading(true);
-      await updateGradeLevel(updatedItem);
-      loadData();
-      setIsUpdateModalOpen(false);
-      toast({
-        title: 'Elemento actualizado',
-        description: 'El elemento ha sido actualizado exitosamente',
-      });
-    } catch (err) {
-      toast({
-        title: 'Error',
-        description: 'No se pudo actualizar el elemento',
-        variant: 'destructive',
-      });
+      await updateGradeLevel.mutateAsync(updatedItem);
+      setIsUpdateModalOpen(false)
+    } catch (error) {
+      console.error('Error al actualizar el grado:', error)
     } finally {
-      setLoading(false);
+      setLoading(false); // Detener carga
     }
-  };
+  }
 
-  const deleteItemHandler = async (id: number) => {
-    try {
-      setLoading(true);
-      await softDeleteGradeLevel(id);
-      loadData();
-      setIsDeleteModalOpen(false);
-      toast({
-        title: 'Elemento eliminado',
-        description: 'El elemento ha sido eliminado exitosamente',
-      });
-    } catch (err) {
-      console.error('Error al eliminar el elemento:', err);
-      toast({
-        title: 'Error',
-        description: 'No se pudo eliminar el elemento',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+
+  // const updateItem = async (updatedItem: GradeLevel) => {
+  //   try {
+  //     setLoading(true);
+  //     await updateGradeLevel(updatedItem);
+  //     loadData();
+  //     setIsUpdateModalOpen(false);
+  //     toast({
+  //       title: 'Elemento actualizado',
+  //       description: 'El elemento ha sido actualizado exitosamente',
+  //     });
+  //   } catch (err) {
+  //     toast({
+  //       title: 'Error',
+  //       description: 'No se pudo actualizar el elemento',
+  //       variant: 'destructive',
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // const deleteItemHandler = async (id: number) => {
+  //   try {
+  //     setLoading(true);
+  //     await softDeleteGradeLevel(id);
+  //     loadData();
+  //     setIsDeleteModalOpen(false);
+  //     toast({
+  //       title: 'Elemento eliminado',
+  //       description: 'El elemento ha sido eliminado exitosamente',
+  //     });
+  //   } catch (err) {
+  //     console.error('Error al eliminar el elemento:', err);
+  //     toast({
+  //       title: 'Error',
+  //       description: 'No se pudo eliminar el elemento',
+  //       variant: 'destructive',
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const handleUpdateClick = (item: GradeLevel) => {
     setSelectedItem(item);
@@ -123,15 +133,19 @@ const ListGradeLevels: React.FC = () => {
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
             <Input placeholder="buscar grado" className="w-[400px] pl-9"
-
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setFilters({ ...filters, name: e.target.value, page: 1 });
+              }}
             />
           </div>
 
         </div>
-        {isAuthenticated && role === 'admin' && (
+        {isAuthenticated && (role === 'superuser' || role === 'admin') && (
           <div className="flex items-center gap-2">
-            <Button onClick={() => setIsCreateModalOpen(true)} disabled={loading}>
-              {loading ? (
+            <Button onClick={() => setIsCreateModalOpen(true)} disabled={isLoading}>
+              {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Cargando
@@ -157,52 +171,44 @@ const ListGradeLevels: React.FC = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {gradeLevels.length > 0 && (
-            gradeLevels.map((gl: GradeLevel) => (
-              <TableRow key={gl.id}>
-                <TableCell>{gl.id}</TableCell>
-                <TableCell>{gl.name}</TableCell>
-                <TableCell>
-                  <Badge variant="secondary" className="rounded-lg text-xs">
-                    {gl.level === 'primaria' ? 'Primaria' : 'Secundaria'}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Button variant="outline" className="mr-2"
-                    onClick={() => handleUpdateClick(gl)}
-                    disabled={loading}>
-                    Editar
-                  </Button>
-                  <Button variant="destructive"
-                    onClick={() => handleDeleteClick(gl)}
-                    disabled={loading}>
-                    Eliminar
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-          {loading && (
+          {data?.data?.map((gradeLevel) => (
+            <TableRow key={gradeLevel.id}>
+              <TableCell>{gradeLevel.id}</TableCell>
+              <TableCell>{gradeLevel.name}</TableCell>
+              <TableCell><Badge variant={gradeLevel.level ? 'default' : 'destructive'}>{gradeLevel.level}</Badge></TableCell>
+              <TableCell>
+                <Button variant="outline" className="mr-2"
+                  onClick={() => handleUpdateClick(gradeLevel)}
+                >
+                  Editar
+                </Button>
+                <Button variant="destructive"
+                  onClick={() => handleDeleteClick(gradeLevel)}
+                >
+                  Eliminar
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+
+
+          {isLoading && (
             <TableRow>
               <TableCell colSpan={4}>
-                <div className='flex justify-center items-center'>
-                  <Loader2 className="mr-2 h-10 w-10 animate-spin" />
-                  Cargando...
+                <div className="space-y-2">
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-6 w-full" />
                 </div>
               </TableCell>
             </TableRow>
           )}
-          {error && (
+          {isError && (
             <TableRow>
               <TableCell colSpan={4} className="text-center text-red-600">
                 {error}
-              </TableCell>
-            </TableRow>
-          )}
-          {gradeLevels.length === 0 && !loading && !error && (
-            <TableRow>
-              <TableCell colSpan={4} className="text-center">
-                No hay datos disponibles
               </TableCell>
             </TableRow>
           )}
@@ -226,13 +232,13 @@ const ListGradeLevels: React.FC = () => {
             isLoading={loading}
           />
 
-          <DeleteGradeLevel
+          {/* <DeleteGradeLevel
             isOpen={isDeleteModalOpen}
             onClose={() => setIsDeleteModalOpen(false)}
             onDelete={() => deleteItemHandler(selectedItem.id)}
             item={selectedItem}
             isLoading={loading}
-          />
+          />  */}
         </>
       )}
     </>

@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState, PropsWithChildren } from 'react';
 import {jwtDecode} from "jwt-decode"; // Importación correcta de jwt-decode
-
 // Definición de los tipos para el contexto
 type AuthContextType = {
   token: string | null;
@@ -8,6 +7,7 @@ type AuthContextType = {
   userData: UserData | null;
   handleLogin: (newToken: string) => void;
   handleLogout: () => void;
+  role: string | null;
 }
 
 // Definición del tipo UserData
@@ -28,6 +28,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [token, setToken] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
     // Obtener los datos del usuario del localStorage
@@ -40,6 +41,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           const decoded = jwtDecode<UserData>(userToken);
           setToken(userToken);
           setUserData(decoded);
+          setRole(decoded.role);
           setIsAuthenticated(true);
         }
       } catch (error) {
@@ -53,6 +55,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const decoded = jwtDecode<UserData>(newToken);
     setToken(newToken);
     setUserData(decoded);
+    setRole(decoded.role);
     setIsAuthenticated(true);
   };
 
@@ -61,10 +64,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setToken(null);
     setUserData(null);
     setIsAuthenticated(false);
+    setRole(null);
   };
 
   return (
-    <AuthContext.Provider value={{ token, isAuthenticated, userData, handleLogin, handleLogout }}>
+    <AuthContext.Provider value={{ token, isAuthenticated, userData, handleLogin, handleLogout, role }}>
       {children}
     </AuthContext.Provider>
   );

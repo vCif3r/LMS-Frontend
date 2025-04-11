@@ -2,60 +2,57 @@ import { DatePicker } from "@/components/date-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Editor } from '@tinymce/tinymce-react';
-import { findByNameGradeLevel } from "@/core/services/grade-level.service";
-import { GradeLevel } from "@/core/types/grade-level";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { createCourse } from "@/core/services/course.service";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { GradeLevel } from "@/core/types/grade-level";
+import { gradeLevelApi } from "@/core/services/grade-level.service";
+import { useCreateCourse } from "@/hooks/use-courses";
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { CreateCourse } from "@/core/types/course";
+import { useNavigate } from "react-router-dom";
 
-type FormValues = {
-    name: string;
-    description: string;
-    gradeLevel: GradeLevel;
-    startDate: Date;
-    endDate: Date;
-    picture: File;
-};
+const formSchema = z.object({
+    name: z.string().min(4, { message: 'El nombre es obligatorio' }),
+    description: z.string().min(10, { message: 'La descripción es obligatoria' }),
+    gradeLevelId: z.string({
+        required_error: "El grado es requerido",
+    }),
+    startDate: z.date(),
+    endDate: z.date()
+})
 
 function FormCourse() {
 
-    const form = useForm<FormValues>({
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
         defaultValues: {
-            name: "",
-            description: "",
-            gradeLevel: undefined,
+            name: '',
+            description: '',
+            gradeLevelId: undefined,
             startDate: undefined,
-            endDate: undefined,
-            picture: undefined
+            endDate: undefined
         },
     });
 
     const [listGradeLevels, setListGradeLevels] = useState<GradeLevel[]>([]);
     const [search, setSearch] = useState('');
-
+    const navigate = useNavigate();
     const [open, setOpen] = useState(false)
     const { toast } = useToast();
-
-    const [name, setName] = useState<string>("");
-    const [description, setDescription] = useState<string>("");
-    const [startDate, setStartDate] = useState<Date | undefined>();
-    const [endDate, setEndDate] = useState<Date | undefined>();
-    const [previewImage, setPreviewImage] = useState<string | undefined>();
-    const [selectedGradeLevel, setSelectedGradeLevel] = useState<GradeLevel>();
-
-    const [error, setError] = useState<string>("");
-    const [isLoading, setIsLoading] = useState(false);
+    const [imagenFile, setImagenFile] = useState<File>();
+    const [imagePreview, setImagePreview] = useState<string | null>(null)
+    const createCourse = useCreateCourse();
 
     const loadGradeLevels = async (query?: string) => {
         try {
-            const response = await findByNameGradeLevel(query || "");
+            const response = await gradeLevelApi.findByName(query || "");
             setListGradeLevels(response.data);
         } catch (error) {
             console.error('Error al cargar los niveles de grado:', error);
@@ -70,52 +67,34 @@ function FormCourse() {
         loadGradeLevels(search);
     }, [search]);
 
-    const onSubmit = async (data: FormValues) => {
-        try {
-          setIsLoading(true);
-          
-          if (data.startDate && data.endDate && data.startDate > data.endDate) {
-            form.setError("endDate", {
-              message: "La fecha de fin no puede ser anterior a la fecha de inicio"
-            });
-            setIsLoading(false);
-            return;
-          }
-    
-          // Crear objeto para el envío
-          const courseData = {
-            name: data.name,
-            description: data.description,
-            gradeLevel: data.gradeLevel,
-            startDate: data.startDate,
-            endDate: data.endDate,
-            picture: data.picture
-          };
-    
-          // Enviar datos
-          await createCourse(courseData);
-          
-          // Mostrar mensaje de éxito
-          toast({
-            title: "Curso creado",
-            description: "El curso se ha creado correctamente",
-            variant: "default"
-          });
-    
-          // Restablecer formulario
-          form.reset();
-          setPreviewImage(undefined);
-        } catch (error: any) {
-          console.error('Error al crear el curso:', error);
-          toast({
-            title: "Error",
-            description: error.response?.data?.message || "No se pudo crear el curso",
-            variant: "destructive"
-          });
-        } finally {
-          setIsLoading(false);
+    // Manejar cambio de imagen
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setImagenFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
         }
-      };
+    };
+
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        try {
+            const cursoDto: CreateCourse = {
+                name: values.name,
+                description: values.description,
+                gradeLevelId: values.gradeLevelId,
+                startDate: values.startDate,
+                endDate: values.endDate
+            }
+            await createCourse.mutateAsync({ course: cursoDto, image: imagenFile || undefined });
+            navigate('/courses');
+        } catch (error) {
+            console.log(error)
+        }
+    };
 
     return (
         <Form {...form}>
@@ -169,7 +148,7 @@ function FormCourse() {
 
                                 <FormField
                                     control={form.control}
-                                    name="gradeLevel"
+                                    name="gradeLevelId"
                                     rules={{ required: "Debes seleccionar un nivel de grado" }}
                                     render={({ field }) => (
                                         <FormItem>
@@ -183,7 +162,10 @@ function FormCourse() {
                                                             aria-expanded={open}
                                                             className="w-[380px] justify-between"
                                                         >
-                                                            {field.value ? field.value.name : "Selecciona un grado"}
+                                                            {(() => {
+                                                                const grado = listGradeLevels.find(grado => grado.id.toString() === field.value);
+                                                                return grado ? (grado.name+' - '+grado.level) : "Selecciona un grado";
+                                                            })()}
                                                             <ChevronsUpDown className="opacity-50" />
                                                         </Button>
                                                     </FormControl>
@@ -206,20 +188,20 @@ function FormCourse() {
 
                                                         {listGradeLevels.length > 0 && (
                                                             <div className="space-y-1">
-                                                                {listGradeLevels.map((level) => (
+                                                                {listGradeLevels.map((grado) => (
                                                                     <div
-                                                                        key={level.id}
-                                                                        className={`p-1.5 cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-zinc-800 text-sm flex items-center gap-1 ${field.value?.id === level.id ? 'bg-gray-100 dark:bg-zinc-800' : 'bg-transparent'}`}
+                                                                        key={grado.id}
+                                                                        className={`p-1.5 cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-zinc-800 text-sm flex items-center gap-1 ${field.value === grado.id.toString() ? 'bg-gray-100 dark:bg-zinc-800' : 'bg-transparent'}`}
                                                                         onClick={() => {
-                                                                            field.onChange(level);
+                                                                            field.onChange(grado.id.toString());
                                                                             setOpen(false);
                                                                         }}
                                                                     >
-                                                                        {level.name}
+                                                                        {grado.name+' - '+grado.level}
                                                                         <Check
                                                                             className={cn(
                                                                                 "ml-auto h-4 w-4",
-                                                                                field.value?.id === level.id ? "opacity-100" : "opacity-0"
+                                                                                field.value === grado.id ? "opacity-100" : "opacity-0"
                                                                             )}
                                                                         />
                                                                     </div>
@@ -278,49 +260,33 @@ function FormCourse() {
                             </div>
 
                             {/* second column - imagen */}
-                            <div className="col-span-12 xl:col-span-5">
-                                <FormField
-                                    control={form.control}
-                                    name="picture"
-                                    render={({ field: { value, onChange, ...field } }) => (
-                                        <FormItem>
-                                            <FormLabel>Imagen</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={(e) => {
-                                                        const file = e.target.files?.[0];
-                                                        if (file) {
-                                                            onChange(file);
-                                                            setPreviewImage(URL.createObjectURL(file));
-                                                        }
-                                                    }}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
+                            <div className="col-span-12 xl:col-span-5 space-y-2">
+                                <FormLabel>Imagen del Curso</FormLabel>
+                                <Input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleFileChange}
+                                    className="cursor-pointer"
                                 />
 
-                                {previewImage ? (
-                                    <img
-                                        src={previewImage}
-                                        alt="preview"
-                                        className="w-full h-auto object-cover mt-2 rounded"
-                                    />
-                                ) : (
-                                    <div className="w-full h-[300px] bg-gray-200 flex items-center justify-center text-gray-500 mt-2 rounded">
-                                        Vista previa
+                                {imagePreview && (
+                                    <div className="mt-4">
+                                        <p className="text-sm text-gray-500 mb-2">Vista previa:</p>
+                                        <div className="relative w-full max-w-md rounded-md overflow-hidden border border-gray-200">
+                                            <img
+                                                src={imagePreview}
+                                                alt="Vista previa"
+                                                className="w-full object-cover max-h-64"
+                                            />
+                                        </div>
                                     </div>
                                 )}
                             </div>
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button type="submit" disabled={isLoading}>
-                            {isLoading ? "Enviando..." : "Agregar curso"}
+                        <Button type="submit" disabled={createCourse.isLoading}>
+                            {createCourse.isLoading ? "Creando..." : "Crear Curso"}
                         </Button>
                     </CardFooter>
                 </Card>

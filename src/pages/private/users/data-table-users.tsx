@@ -9,7 +9,7 @@ import { UserFilters } from "@/core/types/user";
 import { useUsers } from "@/hooks/use-users";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function DataTableUsers() {
     const [filters, setFilters] = useState<UserFilters>({
@@ -24,7 +24,7 @@ function DataTableUsers() {
     const handlePageChange = (page: number) => {
         setFilters({ ...filters, page });
     };
-    
+    const navigate = useNavigate();
     return (
         <>
             <div className="w-full flex gap-3 justify-between items-center mb-4">
@@ -48,7 +48,6 @@ function DataTableUsers() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[100px]">ID</TableHead>
                             <TableHead>Nombre</TableHead>
                             <TableHead>Correo</TableHead>
                             <TableHead>Rol</TableHead>
@@ -75,7 +74,6 @@ function DataTableUsers() {
 
                         {data?.data?.map((user) => (
                             <TableRow key={user.id}>
-                                <TableCell>{user.id}</TableCell>
                                 <TableCell>{user.firstName} {user.lastName}</TableCell>
                                 <TableCell>{user.email}</TableCell>
                                 <TableCell>{user.role.name}</TableCell>
@@ -89,7 +87,8 @@ function DataTableUsers() {
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end" className="w-56">
                                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                            <DropdownMenuItem>
+                                            <DropdownMenuItem
+                                            onClick={() => navigate(`/users/edit/${user.id}`)}>
                                                 Editar
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator />

@@ -15,13 +15,24 @@ export const UsersApi = {
     return data;
   },
 
-  create: async (userData: FormData) => {
-    await apiClient.post(USER_URL, userData, {
+  create: async (user: Omit<User, 'id' | 'createdAt' | 'updateAt'>) => {
+    return await apiClient.post(USER_URL, user)
+  },
+
+  getById: async (id: string): Promise<User> => {
+    const response = await apiClient.get(`${USER_URL}/${id}`)
+    return response.data
+  },
+
+  update: async (id: string, user: FormData) => {
+    return await apiClient.patch(`${USER_URL}/${id}`, user, {
       headers: {
-        "Content-Type": "multipart/form-data",
+        'Content-Type': 'multipart/form-data',
       },
     })
   },
 
-
+  delete: async (id: number) => {
+    return await apiClient.delete(`${USER_URL}/${id}`)
+  }
 }

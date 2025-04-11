@@ -1,7 +1,7 @@
-import axios from "axios";
+import { apiClient } from "../interceptors/axios.interceptor";
 
 export const getRoles = async () => {
-    const response = await axios.get("http://localhost:3000/roles");
+    const response = await apiClient.get("/roles");
     const result = response.data;
     return result;
 };
